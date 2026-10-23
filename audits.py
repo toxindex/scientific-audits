@@ -14,7 +14,7 @@ def norm(s):return ' '.join(str(s).split())
 def receipt(name,label,rows,population,selected,scope='Reusable',limitations=''):
     assessed=[r for r in rows if r.get('verdict') in ('agree','disagree')]
     k=sum(r['verdict']=='agree' for r in assessed)
-    return {'id':name,'label':label,'scope':scope,'category':'Scientific','status':'completed' if assessed else 'not-assessable',
+    return {'name':name,'id':name,'label':label,'scope':scope,'category':'Scientific','status':'completed' if assessed else 'not-assessable',
       'sampling':{'population':population,'selected':selected,'evaluated':len(assessed),'inconclusive':len(rows)-len(assessed),'partial':selected<population or len(assessed)<selected,'method':'SHA256(seed + item IRI), lowest hashes','seed':'audit-v1'},
       'metrics':{'agreement':k/len(assessed) if assessed else None,'numerator':k,'denominator':len(assessed)},'cases':rows,'limitations':limitations,'repository':REPO}
 
@@ -82,7 +82,7 @@ def main():
  g=Graph().parse(args.graph,format='nt' if args.graph.suffix=='.nt' else 'turtle')
  results=[];judge=Judge(args,args.output)
  for kind,label in [('pmc','PMC retrieval: identity, title, abstract and body'),('database','Database retrieval: retained rows and key cells'),('quotes','Literature quotations match retained full text'),('screening','Vertex screening decision agreement'),('extraction','Vertex extraction support agreement')]:
-  allrows=bundle.get(kind,[]);chosen=sample(allrows,args.sample_size,'audit-v1');rows=[]
+  audit_started=time.monotonic();allrows=bundle.get(kind,[]);chosen=sample(allrows,args.sample_size,'audit-v1');rows=[]
   for row in chosen:
    try:
     if kind=='database':r=db_check(row)
@@ -107,7 +107,7 @@ def main():
     rows.append(r)
    except Exception as e:rows.append({'id':row['id'],'verdict':'inconclusive','reason':type(e).__name__+': '+str(e)[:160]})
   limitations={'database':'Retained snapshot consistency only; no independent live database requery.','pmc':'Tests nominated retrievable full texts, not search recall or pagination completeness.','quotes':'Tests supplied retained text; OCR and text normalization can affect matching.','screening':'Model agreement is not accuracy against human gold labels. Original assessed context only.','extraction':'Sampled interpretation support, not exhaustive extraction completeness. Context is limited to quoted passages and nearby text.'}[kind]
-  results.append(receipt(kind,label,rows,len(allrows),len(chosen),limitations=limitations))
+  results.append(dict(receipt(kind,label,rows,len(allrows),len(chosen),limitations=limitations),duration_seconds=time.monotonic()-audit_started))
  n=len(set(g.subjects(RDF.type,URIRef('urn:toxindex:ScreeningAssessment'))))
  results.append(receipt('screening-projection','Screening assessments represented in RDF',[{'id':'graph','verdict':'agree' if n else 'disagree','reason':str(n)+' ScreeningAssessment entities in graph; supplementary retained decisions are audited separately'}],1,1))
  output={'format_version':1,'graph_sha256':graph_hash,'cases_sha256':sha(args.cases.read_bytes()),'implementation_sha256':sha(Path(__file__).read_bytes()),'created':datetime.now(timezone.utc).isoformat(),'model':args.model,'paid_calls':judge.calls,'audits':results}

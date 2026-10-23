@@ -43,3 +43,15 @@ denominator, not a claim of sensitivity or specificity. Audits may disagree
 without the audit command itself failing.
 
 Run-specific scientific expectations belong in the private workflow repository, not this reusable suite.
+
+## LinkML entity validation
+
+```sh
+nix run .#linkml-check -- --graph graph.nt --schema ontology.yaml --schema workflow.yaml --output audit
+```
+
+This uses pinned LinkML, pySHACL and the Oxigraph RDFLib adapter. The first invocation installs the locked Python environment into the user cache. Subsequent runs reuse it. Quick mode checks **all subjects for types and declared classes**, then samples five subjects per type for constraint validation. `--full` requests all constraint targets. Both have a default 115-second audit budget; `--timeout` changes it explicitly. Incomplete or sampled runs cannot earn a full pass. Runtime and phase timings are retained.
+
+`name` is a short audit identifier, separate from its description. Audits may link to subaudits; the LinkML check reports typing, declared types, shape coverage and per-class constraint results. Blank-node diagnostics retain identifiers instead of recursively printing or copying reachable data. This affects report formatting only, not constraint evaluation.
+
+The validator checks unsupported expression coverage separately. Literal `equals_expression` constants are compiled to SHACL `hasValue`; unhandled expressions and uniqueness declarations are reported rather than silently certified. RDF 1.1 string literal normalization avoids false differences between plain strings and `xsd:string`. Full validation uses all subjects; quick sampling is stable for the exact N-Triples snapshot, including its blank-node labels.

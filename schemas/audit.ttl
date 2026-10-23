@@ -8,6 +8,8 @@
 aud:Audit a rdfs:Class ; rdfs:subClassOf ti:AssessmentProcess ; rdfs:comment "An execution of a versioned audit procedure over a specified graph snapshot. Run specificity and sampling are independent axes." .
 aud:AuditResult a rdfs:Class ; rdfs:comment "An observed audit outcome, including coverage and scored metrics. Model agreement is not accuracy against human gold labels." .
 aud:AuditShape a sh:NodeShape ; sh:targetClass aud:Audit ;
+ sh:property [ sh:path aud:name ; sh:datatype xsd:string ; sh:pattern "^[a-z][a-z0-9-]*$" ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:subaudit ; sh:class aud:Audit ; sh:nodeKind sh:IRI ] ;
  sh:property [ sh:path rdfs:label ; sh:datatype xsd:string ; sh:minLength 1 ; sh:minCount 1 ; sh:maxCount 1 ] ;
  sh:property [ sh:path aud:scope ; sh:in ("Reusable" "Run-specific") ; sh:minCount 1 ; sh:maxCount 1 ] ;
  sh:property [ sh:path aud:category ; sh:in ("Scientific" "Software" "Structural") ; sh:minCount 1 ; sh:maxCount 1 ] ;
@@ -22,6 +24,7 @@ aud:AuditShape a sh:NodeShape ; sh:targetClass aud:Audit ;
  sh:property [ sh:path ti:selected-result ; sh:node aud:ResultShape ; sh:class aud:AuditResult ; sh:minCount 1 ; sh:maxCount 1 ] .
 
 aud:ResultShape a sh:NodeShape ;
+ sh:property [ sh:path aud:durationSeconds ; sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxCount 1 ] ;
  sh:property [ sh:path aud:status ; sh:in ("completed" "not-assessable" "error") ; sh:minCount 1 ; sh:maxCount 1 ] ;
  sh:property [ sh:path aud:partial ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ] ;
  sh:property [ sh:path aud:populationCount ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;

@@ -1,0 +1,43 @@
+@prefix aud: <https://w3id.org/toxindex/audit/> .
+@prefix ti: <urn:toxindex:> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+aud:Audit a rdfs:Class ; rdfs:subClassOf ti:AssessmentProcess ; rdfs:comment "An execution of a versioned audit procedure over a specified graph snapshot. Run specificity and sampling are independent axes." .
+aud:AuditResult a rdfs:Class ; rdfs:comment "An observed audit outcome, including coverage and scored metrics. Model agreement is not accuracy against human gold labels." .
+aud:AuditShape a sh:NodeShape ; sh:targetClass aud:Audit ;
+ sh:property [ sh:path rdfs:label ; sh:datatype xsd:string ; sh:minLength 1 ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:scope ; sh:in ("Reusable" "Run-specific") ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:category ; sh:in ("Scientific" "Software" "Structural") ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path ti:assessment-subject ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:graphSha256 ; sh:pattern "^[0-9a-f]{64}$" ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:codeRepository ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:codeRevision ; sh:pattern "^[0-9a-f]{40}$" ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path ti:applies-procedure ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path ti:agent ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path ti:decision-context ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:parameters ; sh:datatype rdf:JSON ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path ti:selected-result ; sh:node aud:ResultShape ; sh:class aud:AuditResult ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+aud:ResultShape a sh:NodeShape ;
+ sh:property [ sh:path aud:status ; sh:in ("completed" "not-assessable" "error") ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:partial ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:populationCount ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:selectedCount ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:lessThanOrEquals aud:populationCount ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:evaluatedCount ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:lessThanOrEquals aud:selectedCount ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:inconclusiveCount ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:samplingMethod ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:samplingSeed ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:agreement ; sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxInclusive 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:metricNumerator ; sh:datatype xsd:integer ; sh:minInclusive 0 ; sh:lessThanOrEquals aud:evaluatedCount ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:limitations ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:property [ sh:path aud:resultArtifact ; sh:nodeKind sh:IRI ; sh:minCount 1 ; sh:maxCount 1 ] ;
+ sh:sparql [ sh:message "Evaluated + inconclusive must equal selected; agreement must have a nonzero denominator and equal numerator/evaluated." ; sh:select """
+ PREFIX aud: <https://w3id.org/toxindex/audit/>
+ SELECT $this WHERE {
+ $this aud:evaluatedCount ?e; aud:inconclusiveCount ?i; aud:selectedCount ?s; aud:metricNumerator ?n .
+ OPTIONAL {$this aud:agreement ?a}
+ FILTER (?e + ?i != ?s || (BOUND(?a) && (?e = 0 || ABS(?a - (?n / ?e)) > 0.000001)) || (?e > 0 && !BOUND(?a)))
+ }""" ] .

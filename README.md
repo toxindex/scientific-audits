@@ -7,7 +7,7 @@ nix flake check
 nix run . -- --graph graph.nt --cases cases.json --output results --sample-size 3
 ```
 
-`cases.json` binds to the exact graph bytes with `graph_sha256`. Its arrays are `pmc`, `database`, `quotes`, `screening`, `extraction` and `required_documents`. Each case has an `id`. The CLI source defines their small contracts. Preserve original source hashes and decision context in the bundle; supplementary retained outputs must be distinguished from graph entities. Never include API keys. Sampling is reproducible by SHA256 of seed + ID, independent of input order.
+`cases.json` binds to the exact graph bytes with `graph_sha256`. Its arrays are `pmc`, `database`, `quotes`, `screening` and `extraction`. Each case has an `id`. The CLI source defines their small contracts. Preserve original source hashes and decision context in the bundle; supplementary retained outputs must be distinguished from graph entities. Never include API keys. Sampling is reproducible by SHA256 of seed + ID, independent of input order.
 
 For a bounded live audit:
 
@@ -41,3 +41,5 @@ Each execution records its procedure, agent, decision context, graph and code
 hashes, scope, sampling counts and result. Agreement is a fraction with a visible
 denominator, not a claim of sensitivity or specificity. Audits may disagree
 without the audit command itself failing.
+
+Run-specific scientific expectations belong in the private workflow repository, not this reusable suite.

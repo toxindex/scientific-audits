@@ -7,7 +7,6 @@ Reviewed `endocrine-review-dvc`, `endocrine-review-dvc-spark` and `endocrine-rev
 | `test_resource_types`: every emitted class is declared | Existing `toxindex/rdf-type-audit` | Reusable; keep independently pinned repo |
 | `test_gather_reliability`: quoted passage occurs in retained full text | `quotes` | Reusable; whitespace-normalized text containment |
 | `test_adapters`: table identity, columns, primary keys and recorded samples | `database` | Reusable; retained cells/key consistency; live source requery remains separate |
-| `test_flow_required_literature`: nominated publications are present | `required-documents` | Run-specific n-hexane requirements; identifier presence only, not ranking/inclusion |
 | `test_pubmed`: complete paging, abstracts, repeated-page stopping | PMC identity/title/abstract/body retrieval check added | Reusable; partial migration, pagination/recall not certified |
 | `test_tox21`, `test_chemharmony`, `test_ice_endocrine` | Catalogued as run-specific legacy expectations | Not automatically executed against new database versions; expected counts/outcomes need versioned source fixtures |
 | `test_evidence_design`, synthesis/AOP tests | Deferred | Depend on their originating application contracts; do not substitute lexical rules |

@@ -108,12 +108,6 @@ def main():
    except Exception as e:rows.append({'id':row['id'],'verdict':'inconclusive','reason':type(e).__name__+': '+str(e)[:160]})
   limitations={'database':'Retained snapshot consistency only; no independent live database requery.','pmc':'Tests nominated retrievable full texts, not search recall or pagination completeness.','quotes':'Tests supplied retained text; OCR and text normalization can affect matching.','screening':'Model agreement is not accuracy against human gold labels. Original assessed context only.','extraction':'Sampled interpretation support, not exhaustive extraction completeness. Context is limited to quoted passages and nearby text.'}[kind]
   results.append(receipt(kind,label,rows,len(allrows),len(chosen),limitations=limitations))
- # Run-specific gold references are audit inputs and never retrieval seeds.
- docs=list(g.subjects(RDF.type,URIRef('urn:toxindex:Document')));expected=bundle.get('required_documents',[]);rows=[]
- for ref in expected:
-  found=[str(s) for s in docs if any(str(o).casefold()==identifier.casefold() for o in g.objects(s,URIRef('urn:toxindex:document-identifiers')) for identifier in ref['identifiers'])]
-  rows.append({'id':ref['id'],'verdict':'agree' if found else 'disagree','reason':'Matched document identifiers' if found else 'No exact identifier match in graph; title-only unresolved documents may exist','matches':found})
- results.append(receipt('required-documents','n-Hexane: required primary documents',rows,len(expected),len(rows),scope='Run-specific',limitations='Presence by identifier only; does not establish inclusion, extraction, rank or scientific correctness.'))
  n=len(set(g.subjects(RDF.type,URIRef('urn:toxindex:ScreeningAssessment'))))
  results.append(receipt('screening-projection','Screening assessments represented in RDF',[{'id':'graph','verdict':'agree' if n else 'disagree','reason':str(n)+' ScreeningAssessment entities in graph; supplementary retained decisions are audited separately'}],1,1))
  output={'format_version':1,'graph_sha256':graph_hash,'cases_sha256':sha(args.cases.read_bytes()),'implementation_sha256':sha(Path(__file__).read_bytes()),'created':datetime.now(timezone.utc).isoformat(),'model':args.model,'paid_calls':judge.calls,'audits':results}

@@ -26,3 +26,18 @@ Exit 0 means the suite completed and wrote results, including disagreements or i
 `schemas/audit.ttl` defines an Audit as an AssessmentProcess with an AuditResult. `results_rdf.py` converts results and validates them using SHACL. Scope (`Reusable`/`Run-specific`), category, completion, partial coverage and agreement are separate fields. Audits do not introduce conclusions into the assessed graph.
 
 See [migration notes](docs/migration.md) for the reviewed legacy contracts and incomplete migrations.
+
+Export and validate the audit receipts as RDF (separate from the scientific graph):
+
+```sh
+nix develop -c python results_rdf.py out/results.json \
+  --revision "$(git rev-parse HEAD)" --graph urn:example:graph \
+  --output out/audits.ttl
+```
+
+`schemas/audit.ttl` defines the proposed Audit vocabulary and SHACL shapes.
+The namespace is a vocabulary proposal; it is not a claim of W3ID registration.
+Each execution records its procedure, agent, decision context, graph and code
+hashes, scope, sampling counts and result. Agreement is a fraction with a visible
+denominator, not a claim of sensitivity or specificity. Audits may disagree
+without the audit command itself failing.

@@ -9,6 +9,7 @@
       packages = each (system: let pkgs = import nixpkgs { inherit system; }; in {
         default = pkgs.writeShellScriptBin "scientific-audits" ''exec ${python system}/bin/python ${self}/audits.py "$@"'';
       });
+      devShells = each (system: { default = (import nixpkgs { inherit system; }).mkShell { packages = [ (python system) ]; }; });
       apps = each (system: { default = { type = "app"; program = "${self.packages.${system}.default}/bin/scientific-audits"; }; });
       checks = each (system: let pkgs = import nixpkgs { inherit system; }; in {
         tests = pkgs.runCommand "scientific-audits-tests" {} ''
